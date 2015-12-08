@@ -48,6 +48,67 @@ static struct fb_videomode lcdif_modedb[] = {
 	FB_SYNC_CLK_LAT_FALL,
 	FB_VMODE_NONINTERLACED,
 	0,},
+{
+	/* 480*272 @ 60 Hz , pixel clk @ 9.0MHz */
+	"URT8253", 60, 480, 272, 111111, 2, 2, 2, 2, 41, 10,
+	FB_SYNC_CLK_LAT_FALL ,
+	FB_VMODE_NONINTERLACED,
+	0,
+	},
+	{
+	/* 640X480 @ 60 Hz , pixel clk @ 25.175MHz */
+	"URT8089", 60, 640, 480, 39722, 16, 114, 10, 30, 30, 5,
+	FB_SYNC_CLK_LAT_FALL ,
+	FB_VMODE_NONINTERLACED,
+	0,
+	},
+	{
+	/* 320x240 @ 60 Hz , pixel clk @ 6.41MHz */
+	"URT8044", 60, 320, 240, 156006, 20, 38, 4, 15, 30, 3,
+	FB_SYNC_CLK_LAT_FALL ,
+	FB_VMODE_NONINTERLACED,
+	0,
+	},
+	{
+	/* 800x480 @ 60 Hz , pixel clk @ 33.26MHz */
+	"URT8173", 60, 800, 480, 30066, 122, 122, 12, 12, 12, 21,
+	FB_SYNC_CLK_LAT_FALL ,
+	FB_VMODE_NONINTERLACED,
+	0,
+	},{
+	"MI800x480", 60, 800, 480, 30066, 100, 100, 2, 2, 12, 20,
+	0,
+	FB_VMODE_NONINTERLACED,
+	0,
+	},
+	{
+	/* 800x600 @ 60 Hz , pixel clk @ 40.0MHz */
+	"MI0800FT", 60, 800, 600, 25000, 190, 46, 2, 23, 20, 6,
+	FB_SYNC_CLK_LAT_FALL ,
+	FB_VMODE_NONINTERLACED,
+	0,
+	},
+	{
+	/* LVDS 1280x800 @ 60 Hz , pixel clk @ 40.0MHz */
+	"LVDS1280X800", 60, 1280, 800, 14064, 70, 70, 20, 10, 10, 3,
+	0 ,
+	FB_VMODE_NONINTERLACED,
+	0,
+	},
+	{
+	/* 800x480 @ 57 Hz , pixel clk @ 27MHz */
+	"CLAA-WVGA", 57, 800, 480, 37037, 40, 60, 10, 10, 20, 10,
+	FB_SYNC_CLK_LAT_FALL,
+	FB_VMODE_NONINTERLACED,
+	0,
+	},
+	{
+	/* 800x480 @ 60 Hz , pixel clk @ 32MHz */
+	"SEIKO-WVGA", 60, 800, 480, 29850, 89, 164, 23, 10, 10, 10,
+	FB_SYNC_CLK_LAT_FALL,
+	FB_VMODE_NONINTERLACED,
+	0,
+	},
 };
 static int lcdif_modedb_sz = ARRAY_SIZE(lcdif_modedb);
 

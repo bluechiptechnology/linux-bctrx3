@@ -3185,6 +3185,7 @@ static void fec_reset_phy(struct platform_device *pdev)
 {
 	int err, phy_reset;
 	int msec = 1;
+	bool phyresetactivehigh;
 	struct device_node *np = pdev->dev.of_node;
 
 	if (!np)
@@ -3199,14 +3200,28 @@ static void fec_reset_phy(struct platform_device *pdev)
 	if (!gpio_is_valid(phy_reset))
 		return;
 
-	err = devm_gpio_request_one(&pdev->dev, phy_reset,
-				    GPIOF_OUT_INIT_LOW, "phy-reset");
-	if (err) {
+	phyresetactivehigh = of_property_read_bool(np, "phy-reset-gpio-active-high");
+	dev_err(&pdev->dev, "phy-reset-gpio-active-high: %d\n", phyresetactivehigh);
+
+	err = devm_gpio_request_one(&pdev->dev, phy_reset, GPIOF_OUT_INIT_LOW, "phy-reset");
+	if (err) 
+	{
 		dev_err(&pdev->dev, "failed to get phy-reset-gpios: %d\n", err);
 		return;
 	}
-	msleep(msec);
-	gpio_set_value(phy_reset, 1);
+
+	if(phyresetactivehigh)
+	{
+		gpio_set_value(phy_reset, 1);
+		msleep(msec);
+		gpio_set_value(phy_reset, 0);
+	}
+	else
+	{
+		gpio_set_value(phy_reset, 0);
+		msleep(msec);
+		gpio_set_value(phy_reset, 1);
+	}
 }
 #else /* CONFIG_OF */
 static void fec_reset_phy(struct platform_device *pdev)

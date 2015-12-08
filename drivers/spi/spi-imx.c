@@ -348,6 +348,9 @@ static int __maybe_unused mx51_ecspi_config(struct spi_imx_data *spi_imx,
 	if (config->mode & SPI_CS_HIGH)
 		cfg |= MX51_ECSPI_CONFIG_SSBPOL(config->cs);
 
+	//DPR data low when inactive
+	cfg |= (0x0f << 16);
+
 	writel(ctrl, spi_imx->base + MX51_ECSPI_CTRL);
 	writel(cfg, spi_imx->base + MX51_ECSPI_CONFIG);
 
@@ -1001,6 +1004,16 @@ static int spi_imx_pio_transfer(struct spi_device *spi,
 	spi_imx->rx_buf = transfer->rx_buf;
 	spi_imx->count = transfer->len;
 	spi_imx->txfifo = 0;
+
+	/*
+	//printk("spi_imx_pio_transfer: %x %x %d: %x\r\n", transfer->tx_buf, transfer->rx_buf, spi_imx->count, ((char *)spi_imx->tx_buf)[0]);
+
+	//DPR
+	if(spi_imx->count > 1)
+	{
+		spi_imx->tx_buf = NULL;
+	}
+	*/
 
 	reinit_completion(&spi_imx->xfer_done);
 

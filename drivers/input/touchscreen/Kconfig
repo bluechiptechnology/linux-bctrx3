@@ -233,6 +233,10 @@ config TOUCHSCREEN_DYNAPRO
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called dynapro.
+config TOUCHSCREEN_FT5X06
+        tristate "FocalTech FT5x06 I2C Touchscreen support"
+        help
+          If unsure, say N.
 
 config TOUCHSCREEN_HAMPSHIRE
 	tristate "Hampshire serial touchscreen"

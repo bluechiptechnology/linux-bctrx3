@@ -1201,6 +1201,7 @@ static int adv7180_probe(struct i2c_client *client,
 	struct device *dev = &client->dev;
 
 	printk(KERN_ERR"DBG sensor data is at %p\n", &adv7180_data);
+	dev_err(dev, "adv7180_probe\n");
 
 	/* ov5640 pinctrl */
 	pinctrl = devm_pinctrl_get_select_default(dev);
@@ -1271,13 +1272,13 @@ static int adv7180_probe(struct i2c_client *client,
 
 	clk_prepare_enable(adv7180_data.sen.sensor_clk);
 
-	dev_dbg(&adv7180_data.sen.i2c_client->dev,
+	dev_err(&adv7180_data.sen.i2c_client->dev,
 		"%s:adv7180 probe i2c address is 0x%02X\n",
 		__func__, adv7180_data.sen.i2c_client->addr);
 
 	/*! Read the revision ID of the tvin chip */
 	rev_id = adv7180_read(ADV7180_IDENT);
-	dev_dbg(dev,
+	dev_err(dev,
 		"%s:Analog Device adv7%2X0 detected!\n", __func__,
 		rev_id);
 
@@ -1290,9 +1291,9 @@ static int adv7180_probe(struct i2c_client *client,
 	/*! ADV7180 initialization. */
 	adv7180_hard_reset(cvbs);
 
-	pr_debug("   type is %d (expect %d)\n",
+	dev_err(dev, "   type is %d (expect %d)\n",
 		 adv7180_int_device.type, v4l2_int_type_slave);
-	pr_debug("   num ioctls is %d\n",
+	dev_err(dev, "   num ioctls is %d\n",
 		 adv7180_int_device.u.slave->num_ioctls);
 
 	/* This function attaches this structure to the /dev/video0 device.

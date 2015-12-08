@@ -109,6 +109,7 @@ struct ads7846 {
 	u16			vref_delay_usecs;
 	u16			x_plate_ohms;
 	u16			pressure_max;
+	u16			pressure_min;
 
 	bool			swap_xy;
 	bool			use_internal;
@@ -419,13 +420,13 @@ static int ads7845_read12_ser(struct device *dev, unsigned command)
 	return status;
 }
 
-#if IS_ENABLED(CONFIG_HWMON)
+#if (IS_ENABLED(CONFIG_HWMON) &&0)
 
 #define SHOW(name, var, adjust) static ssize_t \
 name ## _show(struct device *dev, struct device_attribute *attr, char *buf) \
 { \
 	struct ads7846 *ts = dev_get_drvdata(dev); \
-	ssize_t v = ads7846_read12_ser(dev, \
+	ssize_t v = ads7846_read12_ser(&ts->spi->dev, \
 			READ_12BIT_SER(var)); \
 	if (v < 0) \
 		return v; \
@@ -617,6 +618,33 @@ static int get_pendown_state(struct ads7846 *ts)
 
 static void null_wait_for_sync(void)
 {
+	return;
+
+	/* DPR added for test purposes
+	static void __iomem *io = NULL;
+	u32 value;
+	
+	if(io == NULL)
+	{
+		io = ioremap(0x020F8000, SZ_4K);
+	}
+	
+	if(io)
+	{
+		while(1)
+		{
+			value = readl(io + 0x1D0);
+			value = value & 0x08000000;
+			//printk("s: %x\r\n", value);
+			if(!value)
+			{
+				break;
+			}
+		}
+	}
+
+	*/
+	
 }
 
 static int ads7846_debounce_filter(void *ads, int data_idx, int *val)
@@ -698,11 +726,20 @@ static void ads7846_read_state(struct ads7846 *ts)
 	int val;
 	int action;
 	int error;
+	int iIndexCounter = 0;
 
-	while (msg_idx < ts->msg_count) {
+	//DPR Clear transmit buffers
+	for(iIndexCounter = 0; iIndexCounter < 18; iIndexCounter++)
+	{
+		if(ts->xfer[iIndexCounter].len == 2)
+		{
+			ts->xfer[iIndexCounter].tx_buf = NULL;
+		}
+	}
 
+	while (msg_idx < ts->msg_count) 
+	{
 		ts->wait_for_sync();
-
 		m = &ts->msg[msg_idx];
 		error = spi_sync(ts->spi, m);
 		if (error) {
@@ -791,12 +828,15 @@ static void ads7846_report_state(struct ads7846 *ts)
 		Rt = 0;
 	}
 
+
+	//printk("X: %d Y: %d Z1: %d Z2: %d Rt: %d\r\n", x, y, z1, z2, Rt);
+
 	/*
 	 * Sample found inconsistent by debouncing or pressure is beyond
 	 * the maximum. Don't report it to user space, repeat at least
 	 * once more the measurement
 	 */
-	if (packet->tc.ignore || Rt > ts->pressure_max) {
+	if (packet->tc.ignore || Rt > ts->pressure_max || Rt < ts->pressure_min) {
 		dev_vdbg(&ts->spi->dev, "ignored %d pressure %d\n",
 			 packet->tc.ignore, Rt);
 		return;
@@ -839,6 +879,7 @@ static void ads7846_report_state(struct ads7846 *ts)
 
 		input_sync(input);
 		dev_vdbg(&ts->spi->dev, "%4d/%4d/%4d\n", x, y, Rt);
+		//printk("%4d/%4d/%4d\n", x, y, Rt);
 	}
 }
 
@@ -1310,6 +1351,7 @@ static int ads7846_probe(struct spi_device *spi)
 	ts->vref_delay_usecs = pdata->vref_delay_usecs ? : 100;
 	ts->x_plate_ohms = pdata->x_plate_ohms ? : 400;
 	ts->pressure_max = pdata->pressure_max ? : ~0;
+	ts->pressure_min = pdata->pressure_min ? : 0;
 
 	ts->vref_mv = pdata->vref_mv;
 	ts->swap_xy = pdata->swap_xy;

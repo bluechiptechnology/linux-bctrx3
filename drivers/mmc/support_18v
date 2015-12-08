@@ -1,0 +1,26 @@
+host/sdhci-esdhc-imx.c:	if (boarddata->f_max && (boarddata->f_max < pltfm_host->clock))
+host/sdhci-esdhc-imx.c:		return boarddata->f_max;
+host/sdhci-esdhc-imx.c:	switch (boarddata->wp_type) {
+host/sdhci-esdhc-imx.c:		if (boarddata->delay_line) {
+host/sdhci-esdhc-imx.c:			v = boarddata->delay_line <<
+host/sdhci-esdhc-imx.c:		boarddata->cd_type = ESDHC_CD_PERMANENT;
+host/sdhci-esdhc-imx.c:		boarddata->cd_type = ESDHC_CD_CONTROLLER;
+host/sdhci-esdhc-imx.c:		boarddata->wp_type = ESDHC_WP_CONTROLLER;
+host/sdhci-esdhc-imx.c:	boarddata->cd_gpio = of_get_named_gpio(np, "cd-gpios", 0);
+host/sdhci-esdhc-imx.c:	if (gpio_is_valid(boarddata->cd_gpio))
+host/sdhci-esdhc-imx.c:		boarddata->cd_type = ESDHC_CD_GPIO;
+host/sdhci-esdhc-imx.c:	boarddata->wp_gpio = of_get_named_gpio(np, "wp-gpios", 0);
+host/sdhci-esdhc-imx.c:	if (gpio_is_valid(boarddata->wp_gpio))
+host/sdhci-esdhc-imx.c:		boarddata->wp_type = ESDHC_WP_GPIO;
+host/sdhci-esdhc-imx.c:	of_property_read_u32(np, "bus-width", &boarddata->max_bus_width);
+host/sdhci-esdhc-imx.c:	of_property_read_u32(np, "max-frequency", &boarddata->f_max);
+host/sdhci-esdhc-imx.c:		boarddata->support_vsel = false;
+host/sdhci-esdhc-imx.c:		boarddata->support_vsel = true;
+host/sdhci-esdhc-imx.c:	if (of_property_read_u32(np, "fsl,delay-line", &boarddata->delay_line))
+host/sdhci-esdhc-imx.c:		boarddata->delay_line = 0;
+host/sdhci-esdhc-imx.c:	if (boarddata->wp_type == ESDHC_WP_GPIO) {
+host/sdhci-esdhc-imx.c:		err = mmc_gpio_request_ro(host->mmc, boarddata->wp_gpio);
+host/sdhci-esdhc-imx.c:	switch (boarddata->cd_type) {
+host/sdhci-esdhc-imx.c:		err = mmc_gpio_request_cd(host->mmc, boarddata->cd_gpio, 0);
+host/sdhci-esdhc-imx.c:	switch (boarddata->max_bus_width) {
+host/sdhci-esdhc-imx.c:	if ((boarddata->support_vsel) && esdhc_is_usdhc(imx_data)) {
