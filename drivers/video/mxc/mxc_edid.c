@@ -600,6 +600,8 @@ EXPORT_SYMBOL(mxc_edid_parse_ext_blk);
 static int mxc_edid_readblk(struct i2c_adapter *adp,
 		unsigned short addr, unsigned char *edid)
 {
+	int iIndexCounter=0;
+	int Checksum = 0;
 	int ret = 0, extblknum = 0;
 	unsigned char regaddr = 0x0;
 	struct i2c_msg msg[2] = {
@@ -636,6 +638,18 @@ static int mxc_edid_readblk(struct i2c_adapter *adp,
 			DPRINTK("unable to read EDID ext block\n");
 			return -EIO;
 		}
+	}
+
+	Checksum = 0;
+	for(iIndexCounter=0; iIndexCounter < 128; iIndexCounter++)
+	{
+		Checksum += edid[iIndexCounter];
+	}
+
+	if (Checksum % 256 != 0)
+	{
+		printk("Bad EDID Checksum\r\n");
+		return -ENOENT;
 	}
 
 	return extblknum;
@@ -744,8 +758,11 @@ int mxc_edid_read(struct i2c_adapter *adp, unsigned short addr,
 
 		/* FIXME: mxc_edid_readsegblk() won't read more than 2 blocks
 		 * and the for-loop will read past the end of the buffer! :-( */
-		BUG_ON(extblknum > 3);
-
+		//DPR
+		if (extblknum > 3) {
+			WARN_ON(true);
+			return -EINVAL;
+		}
 		/* need read segment block? */
 		if (extblknum > 1) {
 			ret = mxc_edid_readsegblk(adp, addr,

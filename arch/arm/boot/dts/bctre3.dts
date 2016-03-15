@@ -279,6 +279,13 @@
 			>;
 		};
 		
+		pinctrl_i2c2_gpio: i2c2grpgpio {
+			fsl,pins = <
+				MX6QDL_PAD_KEY_COL3__GPIO4_IO12  0x4001b8b1
+				MX6QDL_PAD_KEY_ROW3__GPIO4_IO13  0x4001b8b1
+			>;
+		};
+		
 		pinctrl_i2c3: i2c3grp {
 			fsl,pins = <
 				MX6QDL_PAD_GPIO_5__I2C3_SCL  0x4001b8b1
@@ -417,9 +424,12 @@
 };
 
 &i2c2 {
-	clock-frequency = <100000>;
-	pinctrl-names = "default";
+	clock-frequency = <20000>;
+	pinctrl-names = "default", "gpio";
 	pinctrl-0 = <&pinctrl_i2c2>;
+	pinctrl-1 = <&pinctrl_i2c2_gpio>;
+	sclgpio = <&gpio4 12 1>;
+	sdagpio = <&gpio4 13 1>;
 	status = "okay";
 
 	hdmi: edid@50 {

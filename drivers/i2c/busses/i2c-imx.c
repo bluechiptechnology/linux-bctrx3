@@ -52,6 +52,7 @@
 #include <linux/slab.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
+#include <linux/of_gpio.h>
 #include <linux/platform_data/i2c-imx.h>
 
 /** Defines ********************************************************************
@@ -184,6 +185,10 @@ struct imx_i2c_struct {
 	int			stopped;
 	unsigned int		ifdr; /* IMX_I2C_IFDR */
 	const struct imx_i2c_hwdata	*hwdata;
+	struct pinctrl *pinctrl;
+	struct pinctrl_state *pinstatenormal, *pinstategpio;
+	int sclgpio;
+	int sdagpio;
 };
 
 static const struct imx_i2c_hwdata imx1_i2c_hwdata  = {
@@ -543,6 +548,25 @@ static int i2c_imx_xfer(struct i2c_adapter *adapter,
 
 	dev_dbg(&i2c_imx->adapter.dev, "<%s>\n", __func__);
 
+	//printk("i2c_imx_xfer: %d\r\n", num);
+	if(i2c_imx->pinstategpio != NULL)
+	{
+		pinctrl_select_state(i2c_imx->pinctrl, i2c_imx->pinstategpio);
+
+		temp = gpio_get_value(i2c_imx->sdagpio);
+		if(temp == 0)
+		{
+			printk("i2c: Fault detected on bus. Attempting recoveryV3\r\n");
+			gpio_direction_output(i2c_imx->sclgpio, 0);
+			msleep(4000);
+			gpio_direction_input(i2c_imx->sclgpio);
+			msleep(1000);
+		}
+
+		pinctrl_select_state(i2c_imx->pinctrl, i2c_imx->pinstatenormal);
+	}
+
+
 	/* Start I2C transfer */
 	result = i2c_imx_start(i2c_imx);
 	if (result)
@@ -681,6 +705,65 @@ static int i2c_imx_probe(struct platform_device *pdev)
 
 	/* Set up adapter data */
 	i2c_set_adapdata(&i2c_imx->adapter, i2c_imx);
+
+	printk("i2c request pinctrl\r\n");
+	i2c_imx->pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
+	if (IS_ERR(i2c_imx->pinctrl)) 
+	{
+		printk("Error: Failed to Request pinctrl\r\n");
+		ret = PTR_ERR(i2c_imx->pinctrl);
+		return ret;
+	}
+
+	printk("i2c request pin state normal\r\n");
+	i2c_imx->pinstatenormal = pinctrl_lookup_state(i2c_imx->pinctrl, "default");
+	if (IS_ERR(i2c_imx->pinstatenormal))
+	{
+		printk("i2c: pinstatenormal missing\r\n");
+		ret = PTR_ERR(i2c_imx->pinstatenormal);
+		return ret;
+	}
+
+	printk("i2c request pin state gpio\r\n");
+	i2c_imx->pinstategpio = pinctrl_lookup_state(i2c_imx->pinctrl, "gpio");
+	if (IS_ERR(i2c_imx->pinstategpio))
+	{
+		printk("i2c: pinstategpio missing\r\n");
+		i2c_imx->pinstategpio = NULL;
+	}
+	else
+	{
+		i2c_imx->sclgpio = of_get_named_gpio(pdev->dev.of_node, "sclgpio", 0);
+		i2c_imx->sdagpio = of_get_named_gpio(pdev->dev.of_node, "sdagpio", 0);
+
+		if (!gpio_is_valid(i2c_imx->sclgpio) || !gpio_is_valid(i2c_imx->sdagpio))
+		{
+			printk("i2c: sclgpio or sdagpio definition missing\r\n");
+			i2c_imx->sclgpio = -1;
+			i2c_imx->sdagpio = -1;
+			i2c_imx->pinstategpio = NULL;
+		}
+		else
+		{
+			ret = gpio_request_one(i2c_imx->sclgpio, GPIOF_IN, "i2c_sclgpio");
+			if(ret >= 0)
+			{
+				ret = gpio_request_one(i2c_imx->sdagpio, GPIOF_IN, "i2c_sdagpio");
+			}
+
+			if(ret < 0)
+			{
+				printk("i2c: Failed to request sclgpio and i2c_sdagpio\r\n");
+				i2c_imx->sclgpio = -1;
+				i2c_imx->sdagpio = -1;
+				i2c_imx->pinstategpio = NULL;
+			}
+			else
+			{
+				printk("i2c: sclgpio=%d sdagpio=%d\r\n", i2c_imx->sclgpio, i2c_imx->sdagpio);
+			}
+		}
+	}
 
 	/* Set up clock divider */
 	bitrate = IMX_I2C_BIT_RATE;
