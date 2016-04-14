@@ -89,7 +89,14 @@ static struct fb_videomode lcdif_modedb[] = {
 	0,
 	},
 	{
-	/* LVDS 1280x800 @ 60 Hz , pixel clk @ 40.0MHz */
+        /* LVDS 800x600 @ 60 Hz , pixel clk @ 40.0MHz */
+        "LVDS800X600", 60, 800, 600, 25000, 190, 46, 2, 23, 20, 6,
+        0 ,
+        FB_VMODE_NONINTERLACED,
+        0,
+        },
+	{
+	/* LVDS 1280x800 @ 60 Hz , pixel clk @ 71.0MHz */
 	"LVDS1280X800", 60, 1280, 800, 14064, 70, 70, 20, 10, 10, 3,
 	0 ,
 	FB_VMODE_NONINTERLACED,
